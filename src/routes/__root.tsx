@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "OneNote" },
+      { name: "description", content: "A pixel-perfect OneNote clone for Mac with integrated, invisible AI assistance." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "OneNote" },
+      { property: "og:description", content: "A pixel-perfect OneNote clone for Mac with integrated, invisible AI assistance." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "OneNote" },
+      { name: "twitter:description", content: "A pixel-perfect OneNote clone for Mac with integrated, invisible AI assistance." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/12bc58aa-5598-4b4d-beea-0a3d592c2639/id-preview-25d0ff52--c41d4a40-9375-4684-bdd3-4df9a7fd46a7.lovable.app-1779961576794.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/12bc58aa-5598-4b4d-beea-0a3d592c2639/id-preview-25d0ff52--c41d4a40-9375-4684-bdd3-4df9a7fd46a7.lovable.app-1779961576794.png" },
     ],
     links: [
       {
