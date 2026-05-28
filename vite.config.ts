@@ -29,4 +29,12 @@ export default defineConfig({
       },
     }),
   ],
+  optimizeDeps: {
+    exclude: ['pdfjs-dist'],
+  },
+  resolve: {
+    alias: {
+      'pdfjs-dist': 'pdfjs-dist/legacy/build/pdf',
+    },
+  },
 })
