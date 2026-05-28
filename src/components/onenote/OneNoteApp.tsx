@@ -7,7 +7,8 @@ import { Ribbon } from "./Ribbon";
 import { Sidebar } from "./Sidebar";
 import { Editor } from "./Editor";
 import { loadState, saveStateDebounced } from "@/lib/onenote/storage";
-import type { AppState } from "@/lib/onenote/types";
+import { allSections, findSection } from "@/lib/onenote/types";
+import type { AppState, Section, Page } from "@/lib/onenote/types";
 
 export function OneNoteApp() {
   const [state, setStateRaw] = useState<AppState | null>(null);
@@ -26,53 +27,63 @@ export function OneNoteApp() {
   }, []);
 
   if (!state) {
-    return <div className="h-screen w-screen bg-white" />;
+    return <div className="h-screen w-screen bg-[#1E1E1E]" />;
   }
 
   const notebook = state.notebooks.find((n) => n.id === state.activeNotebookId)!;
-  const section =
-    notebook.sections.find((s) => s.id === state.activeSectionId) ?? notebook.sections[0];
-  const page = section.pages.find((p) => p.id === state.activePageId) ?? section.pages[0];
+  const sections = allSections(notebook);
+  const section: Section | undefined =
+    findSection(notebook, state.activeSectionId) ?? sections[0];
+  const page: Page | undefined =
+    section?.pages.find((p) => p.id === state.activePageId) ?? section?.pages[0];
 
-  const updatePage = (mut: (p: typeof page) => typeof page) => {
+  const updatePage = (mut: (p: Page) => Page) => {
+    if (!section || !page) return;
     setState((prev) => ({
       ...prev,
-      notebooks: prev.notebooks.map((n) =>
-        n.id !== prev.activeNotebookId
-          ? n
-          : {
-              ...n,
-              sections: n.sections.map((s) =>
+      notebooks: prev.notebooks.map((n) => {
+        if (n.id !== prev.activeNotebookId) return n;
+        return {
+          ...n,
+          items: n.items.map((it) => {
+            if (it.type === "section") {
+              if (it.id !== section.id) return it;
+              return { ...it, pages: it.pages.map((p) => (p.id === page.id ? mut(p) : p)) };
+            }
+            return {
+              ...it,
+              children: it.children.map((s) =>
                 s.id !== section.id
                   ? s
-                  : {
-                      ...s,
-                      pages: s.pages.map((p) => (p.id === page.id ? mut(p) : p)),
-                    },
+                  : { ...s, pages: s.pages.map((p) => (p.id === page.id ? mut(p) : p)) },
               ),
-            },
-      ),
+            };
+          }),
+        };
+      }),
     }));
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-white text-[#222] overflow-hidden font-onenote">
+    <div className="h-screen w-screen flex flex-col bg-[#1E1E1E] text-[#D4D4D4] overflow-hidden font-onenote">
       <TitleBar />
       <RibbonTabs />
       <Ribbon editor={editor} />
       <div className="flex flex-1 min-h-0">
         <Sidebar state={state} setState={setState} />
-        <Editor
-          key={page.id}
-          page={page}
-          onChangeTitle={(title) =>
-            updatePage((p) => ({ ...p, title, updatedAt: new Date().toISOString() }))
-          }
-          onChangeContent={(content: JSONContent) =>
-            updatePage((p) => ({ ...p, content, updatedAt: new Date().toISOString() }))
-          }
-          onEditorReady={setEditor}
-        />
+        {page && (
+          <Editor
+            key={page.id}
+            page={page}
+            onChangeTitle={(title) =>
+              updatePage((p) => ({ ...p, title, updatedAt: new Date().toISOString() }))
+            }
+            onChangeContent={(content: JSONContent) =>
+              updatePage((p) => ({ ...p, content, updatedAt: new Date().toISOString() }))
+            }
+            onEditorReady={setEditor}
+          />
+        )}
       </div>
     </div>
   );

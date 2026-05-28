@@ -27,12 +27,12 @@ interface Props {
 }
 
 function Sep() {
-  return <div className="w-px h-full bg-[#D4D4D4] mx-1" />;
+  return <div className="w-px h-full bg-[#1a1a1a] mx-1" />;
 }
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] text-[#666] text-center pt-1 select-none">{children}</div>
+    <div className="text-[10px] text-[#888] text-center pt-1 select-none">{children}</div>
   );
 }
 
@@ -53,8 +53,8 @@ function MiniBtn({
       title={title}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className={`flex items-center justify-center w-[22px] h-[22px] rounded-sm text-[#333] hover:bg-[#E5E5E5] ${
-        active ? "bg-[#D9D9D9]" : ""
+      className={`flex items-center justify-center w-[22px] h-[22px] rounded-sm text-[#ccc] hover:bg-[#3d3d3d] ${
+        active ? "bg-[#4a4a4a]" : ""
       }`}
     >
       {children}
@@ -64,25 +64,25 @@ function MiniBtn({
 
 export function Ribbon({ editor }: Props) {
   return (
-    <div className="flex h-[68px] bg-white border-b border-[#D4D4D4] text-[11px] text-[#333] select-none">
+    <div className="flex h-[72px] bg-[#323232] border-b border-[#111] text-[11px] text-[#ccc] select-none">
       {/* Clipboard */}
       <div className="flex flex-col px-2 pt-1">
         <div className="flex gap-2 flex-1">
           <button
             onMouseDown={(e) => e.preventDefault()}
-            className="flex flex-col items-center justify-between w-[46px] py-1 hover:bg-[#F0F0F0] rounded-sm"
+            className="flex flex-col items-center justify-between w-[46px] py-1 hover:bg-[#3d3d3d] rounded-sm"
           >
-            <ClipboardPaste className="w-5 h-5 text-[#7B2FBE]" />
+            <ClipboardPaste className="w-5 h-5 text-[#a48ddc]" />
             <span className="text-[10px] leading-none mt-1">Paste</span>
           </button>
           <div className="flex flex-col gap-[2px] justify-center">
-            <button className="flex items-center gap-1 px-1 h-[18px] hover:bg-[#F0F0F0] rounded-sm">
+            <button className="flex items-center gap-1 px-1 h-[18px] hover:bg-[#3d3d3d] rounded-sm">
               <Scissors className="w-3 h-3" /> <span className="text-[10px]">Cut</span>
             </button>
-            <button className="flex items-center gap-1 px-1 h-[18px] hover:bg-[#F0F0F0] rounded-sm">
+            <button className="flex items-center gap-1 px-1 h-[18px] hover:bg-[#3d3d3d] rounded-sm">
               <Copy className="w-3 h-3" /> <span className="text-[10px]">Copy</span>
             </button>
-            <button className="flex items-center gap-1 px-1 h-[18px] hover:bg-[#F0F0F0] rounded-sm">
+            <button className="flex items-center gap-1 px-1 h-[18px] hover:bg-[#3d3d3d] rounded-sm">
               <Paintbrush className="w-3 h-3" /> <span className="text-[10px]">Format</span>
             </button>
           </div>
@@ -97,7 +97,7 @@ export function Ribbon({ editor }: Props) {
         <div className="flex flex-col gap-1 flex-1 justify-center">
           <div className="flex items-center gap-1">
             <select
-              className="h-[20px] text-[11px] border border-[#C8C8C8] bg-white px-1 w-[140px]"
+              className="h-[20px] text-[11px] border border-[#1a1a1a] bg-[#262626] text-[#ccc] px-1 w-[140px]"
               defaultValue="Verdana"
             >
               <option>Verdana</option>
@@ -106,7 +106,7 @@ export function Ribbon({ editor }: Props) {
               <option>Times New Roman</option>
             </select>
             <select
-              className="h-[20px] text-[11px] border border-[#C8C8C8] bg-white px-1 w-[50px]"
+              className="h-[20px] text-[11px] border border-[#1a1a1a] bg-[#262626] text-[#ccc] px-1 w-[50px]"
               defaultValue="12"
             >
               {[9, 10, 11, 12, 14, 16, 18, 24, 36].map((n) => (
@@ -213,14 +213,14 @@ export function Ribbon({ editor }: Props) {
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-            className="border border-[#C8C8C8] px-3 py-[2px] text-[12px] text-[#2E75B6] bg-white hover:bg-[#F0F0F0] min-w-[120px] text-left"
+            className="border border-[#1a1a1a] px-3 py-[2px] text-[12px] text-[#7aa8d8] bg-[#262626] hover:bg-[#3d3d3d] min-w-[120px] text-left"
           >
             Heading 1
           </button>
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-            className="border border-[#C8C8C8] px-3 py-[2px] text-[11px] text-[#2E75B6] bg-white hover:bg-[#F0F0F0] min-w-[120px] text-left"
+            className="border border-[#1a1a1a] px-3 py-[2px] text-[11px] text-[#7aa8d8] bg-[#262626] hover:bg-[#3d3d3d] min-w-[120px] text-left"
           >
             Heading 2
           </button>
@@ -233,11 +233,11 @@ export function Ribbon({ editor }: Props) {
       {/* Tags */}
       <div className="flex flex-col px-2 pt-1">
         <div className="flex gap-2 flex-1 items-center">
-          <button className="flex flex-col items-center justify-center w-[46px] py-1 hover:bg-[#F0F0F0] rounded-sm">
+          <button className="flex flex-col items-center justify-center w-[46px] py-1 hover:bg-[#3d3d3d] rounded-sm">
             <CheckSquare className="w-5 h-5 text-[#5B7FBE]" />
             <span className="text-[10px] mt-[2px]">To Do</span>
           </button>
-          <button className="flex flex-col items-center justify-center w-[46px] py-1 hover:bg-[#F0F0F0] rounded-sm">
+          <button className="flex flex-col items-center justify-center w-[46px] py-1 hover:bg-[#3d3d3d] rounded-sm">
             <Star className="w-5 h-5 text-[#E8B53A]" />
             <span className="text-[10px] mt-[2px]">Important</span>
           </button>

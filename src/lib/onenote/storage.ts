@@ -1,7 +1,7 @@
 import type { AppState } from "./types";
 import { createSeedState } from "./seed";
 
-const KEY = "onenote:v1";
+const KEY = "onenote:v2";
 
 export function loadState(): AppState {
   if (typeof window === "undefined") return createSeedState();

@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-const TABS = ["Home", "Insert", "Draw", "View"];
+const TABS = ["Home", "Insert", "Draw", "View", "Tell me..."];
 
 export function RibbonTabs() {
   const [active, setActive] = useState("Home");
   return (
-    <div className="flex items-end h-7 bg-[#F5F5F5] border-b border-[#D0D0D0] px-3 gap-1">
+    <div className="flex items-end h-7 bg-[#262626] border-b border-[#111] px-3 gap-1 select-none">
       {TABS.map((t) => {
         const isActive = t === active;
         return (
@@ -14,8 +14,8 @@ export function RibbonTabs() {
             onClick={() => setActive(t)}
             className={`px-3 h-7 text-[12px] transition-colors ${
               isActive
-                ? "bg-white text-[#1a1a1a] border-b-2 border-[#7B2FBE] -mb-px"
-                : "text-[#444] hover:bg-[#EBEBEB]"
+                ? "text-white bg-[#323232]"
+                : "text-[#888] hover:text-[#ccc] hover:bg-[#2c2c2c]"
             }`}
           >
             {t}

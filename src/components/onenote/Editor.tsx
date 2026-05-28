@@ -7,7 +7,6 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import { useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { AiResponse } from "./AiResponseNode";
 import { isQuestion, askLmStudio } from "@/lib/onenote/ai";
 import type { Page } from "@/lib/onenote/types";
 import type { JSONContent } from "@tiptap/react";
@@ -30,8 +29,7 @@ export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: 
         Highlight.configure({ multicolor: true }),
         TextStyle,
         Color,
-        Placeholder.configure({ placeholder: "Start typing..." }),
-        AiResponse,
+        Placeholder.configure({ placeholder: "" }),
       ],
       content: page.content ?? { type: "doc", content: [{ type: "paragraph" }] },
       editorProps: {
@@ -47,35 +45,23 @@ export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: 
           const text = para.textContent;
           if (!isQuestion(text)) return false;
 
-          event.preventDefault();
-          // Insert AI response block after the current paragraph
-          const endPos = $from.end();
-          editor
-            ?.chain()
-            .focus()
-            .insertContentAt(endPos + 1, {
-              type: "aiResponse",
-              attrs: { state: "loading" },
-              content: [{ type: "text", text: "…" }],
-            })
-            .run();
-
-          // Find inserted node position and stream-ish
+          // Allow default Enter (new paragraph). Fire AI silently in background.
           const question = text;
-          const responsePos = endPos + 1;
           askLmStudio(question)
             .then((answer) => {
-              replaceAiBlock(editor, responsePos, answer, "ready");
+              if (!editor) return;
+              const lines = answer.split("\n").filter((l) => l.trim().length > 0);
+              const nodes = lines.map((line) => ({
+                type: "paragraph",
+                content: [{ type: "text", text: line }],
+              }));
+              const insertAt = editor.state.selection.from;
+              editor.chain().focus().insertContentAt(insertAt, nodes).run();
             })
             .catch(() => {
-              replaceAiBlock(
-                editor,
-                responsePos,
-                "⚠ LM Studio nicht erreichbar",
-                "error",
-              );
+              // Silent failure — AI is invisible.
             });
-          return true;
+          return false;
         },
       },
       onUpdate: ({ editor }) => {
@@ -97,13 +83,13 @@ export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: 
   }, [page.id, page.title]);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-white">
+    <div className="flex-1 overflow-y-auto bg-[#1E1E1E]">
       <div className="max-w-[900px] mx-auto pt-10 pb-32 px-[60px]">
         <div
           ref={titleRef}
           contentEditable
           suppressContentEditableWarning
-          onBlur={(e) => onChangeTitle(e.currentTarget.innerText.trim() || "Untitled page")}
+          onBlur={(e) => onChangeTitle(e.currentTarget.innerText.trim() || "Neue Seite")}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -111,52 +97,13 @@ export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: 
               editor?.commands.focus("start");
             }
           }}
-          className="text-[28px] font-light text-[#1a1a1a] outline-none leading-tight"
+          className="text-[26px] font-light text-[#E8E8E8] outline-none leading-tight"
         />
-        <div className="text-[12px] text-[#888] mt-2 mb-6">
+        <div className="text-[12px] text-[#555] mt-2 mb-6">
           {format(new Date(page.updatedAt), "EEEE, d MMMM yyyy  h:mm a")}
         </div>
         <EditorContent editor={editor} />
       </div>
     </div>
   );
-}
-
-function replaceAiBlock(
-  editor: TiptapEditor | null,
-  pos: number,
-  text: string,
-  state: "ready" | "error",
-) {
-  if (!editor) return;
-  // Find the aiResponse node at or near pos
-  const doc = editor.state.doc;
-  let nodePos: number | null = null;
-  let nodeSize = 0;
-  doc.descendants((node, p) => {
-    if (node.type.name === "aiResponse" && nodePos === null && p >= pos - 2) {
-      nodePos = p;
-      nodeSize = node.nodeSize;
-      return false;
-    }
-    return undefined;
-  });
-  if (nodePos === null) return;
-  editor
-    .chain()
-    .focus()
-    .deleteRange({ from: nodePos, to: nodePos + nodeSize })
-    .insertContentAt(nodePos, {
-      type: "aiResponse",
-      attrs: { state },
-      content: text
-        .split("\n")
-        .filter(Boolean)
-        .flatMap((line, i) =>
-          i === 0
-            ? [{ type: "text", text: line }]
-            : [{ type: "hardBreak" }, { type: "text", text: line }],
-        ),
-    })
-    .run();
 }
