@@ -79,7 +79,7 @@ export async function askLmStudio(question: string, images?: string[]): Promise<
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "local-model",
+      model: "google/gemma-3-12b",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userContent },
