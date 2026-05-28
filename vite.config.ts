@@ -1,14 +1,14 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { lovableTanstackConfig } from '@lovable.dev/vite-tanstack-config'
 import { VitePWA } from 'vite-plugin-pwa'
-import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
+  ...lovableTanstackConfig(),
   plugins: [
-    react(),
-    tsconfigPaths(),
+    ...(lovableTanstackConfig().plugins ?? []),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: { enabled: false },
       manifest: {
         name: 'OneNote',
         short_name: 'OneNote',
@@ -17,9 +17,19 @@ export default defineConfig({
         display: 'standalone',
         start_url: '/',
         icons: [
-          { src: '/favicon.ico', sizes: '64x64', type: 'image/x-icon' }
-        ]
-      }
-    })
+          { src: '/favicon.ico', sizes: '64x64', type: 'image/x-icon' },
+        ],
+      },
+      workbox: {
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/api/],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'html', networkTimeoutSeconds: 3 },
+          },
+        ],
+      },
+    }),
   ],
 })
