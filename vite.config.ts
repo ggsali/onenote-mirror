@@ -25,11 +25,11 @@ export default defineConfig({
             handler: 'NetworkFirst',
             options: { cacheName: 'html', networkTimeoutSeconds: 3 },
           },
+        ],
       },
     }),
   ],
   optimizeDeps: {
     exclude: ['pdfjs-dist'],
   },
-})
 })
