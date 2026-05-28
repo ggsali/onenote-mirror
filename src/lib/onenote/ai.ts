@@ -11,6 +11,52 @@ const TRIGGERS = [
   "definiere",
 ];
 
+const SYSTEM_PROMPT_WITH_PDF = `Du bist ein präziser Lernassistent für Berufsschüler in der Schweiz.
+
+Du hast Zugriff auf Seiten aus dem Lehrbuch des Nutzers.
+
+Priorisierung:
+
+1. Antworte zuerst basierend auf dem Lehrbuch
+
+2. Wenn etwas nicht im Lehrbuch steht, ergänze mit deinem eigenen Wissen
+
+3. Kennzeichne eigenes Wissen mit: "(aus eigenem Wissen)"
+
+Regeln:
+
+- Antworte IMMER auf Deutsch
+
+- Maximal 150 Wörter
+
+- Strukturiert und klar
+
+- Keine Einleitung wie "Gerne beantworte ich..."
+
+- Direkt zur Antwort
+
+- Bei Formeln: schreibe sie klar aus z.B. U = R · I`;
+
+const SYSTEM_PROMPT_NO_PDF = `Du bist ein präziser Lernassistent für Berufsschüler in der Schweiz.
+
+Du hilfst bei der Vorbereitung auf die Abschlussprüfung.
+
+Regeln:
+
+- Antworte IMMER auf Deutsch
+
+- Maximal 150 Wörter
+
+- Strukturiert und klar
+
+- Keine Einleitung wie "Gerne beantworte ich..."
+
+- Direkt zur Antwort
+
+- Bei Formeln: schreibe sie klar aus z.B. U = R · I
+
+- Bei Aufzählungen: nutze Bulletpoints`;
+
 export function isQuestion(text: string): boolean {
   const t = text.trim().toLowerCase();
   if (!t) return false;
@@ -18,22 +64,20 @@ export function isQuestion(text: string): boolean {
   return TRIGGERS.some((trig) => t.startsWith(trig + " ") || t === trig);
 }
 
-export async function askLmStudio(question: string): Promise<string> {
+export async function askLmStudio(question: string, hasPdfLoaded: boolean = false): Promise<string> {
+  const systemPrompt = hasPdfLoaded ? SYSTEM_PROMPT_WITH_PDF : SYSTEM_PROMPT_NO_PDF;
+
   const response = await fetch("http://localhost:1234/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "local-model",
       messages: [
-        {
-          role: "system",
-          content:
-            "Du bist ein präziser Lernassistent für Berufsschüler in der Schweiz. Antworte immer auf Deutsch, klar und strukturiert. Maximal 150 Wörter pro Antwort. Kein Smalltalk.",
-        },
+        { role: "system", content: systemPrompt },
         { role: "user", content: question },
       ],
-      temperature: 0.5,
-      max_tokens: 300,
+      temperature: 0.3,
+      max_tokens: 400,
     }),
   });
   if (!response.ok) throw new Error(`LM Studio HTTP ${response.status}`);
