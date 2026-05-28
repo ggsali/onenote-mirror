@@ -1,11 +1,8 @@
-import { defineConfig } from 'vite'
-import { lovableTanstackConfig } from '@lovable.dev/vite-tanstack-config'
+import { defineConfig } from '@lovable.dev/vite-tanstack-config'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  ...lovableTanstackConfig(),
   plugins: [
-    ...(lovableTanstackConfig().plugins ?? []),
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: { enabled: false },
