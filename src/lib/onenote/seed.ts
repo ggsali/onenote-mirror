@@ -1,34 +1,35 @@
-import type { AppState, Section, SectionColor } from "./types";
+import type { AppState, Notebook, Section } from "./types";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-const colors: SectionColor[] = ["yellow", "orange", "green", "blue"];
-const sectionNames = ["Elektrotechnik", "Mechanik", "Mathematik", "Wirtschaft"];
+const SEED_SECTIONS: Array<{ name: string; color: string }> = [
+  { name: "Elektrotechnik", color: "#e8c03a" },
+  { name: "Mechanik", color: "#f08030" },
+  { name: "Mathematik", color: "#48a848" },
+  { name: "Wirtschaft", color: "#2878e0" },
+];
 
 export function createSeedState(): AppState {
   const now = new Date().toISOString();
-  const sections: Section[] = sectionNames.map((name, i) => {
-    const pageId = uid();
-    return {
-      id: uid(),
-      name,
-      color: colors[i],
-      pages: [
-        {
-          id: pageId,
-          title: "Neue Seite",
-          createdAt: now,
-          updatedAt: now,
-          content: null,
-        },
-      ],
-    };
-  });
+  const sections: Section[] = SEED_SECTIONS.map(({ name, color }) => ({
+    type: "section",
+    id: uid(),
+    name,
+    color,
+    pages: [
+      {
+        id: uid(),
+        title: "Neue Seite",
+        updatedAt: now,
+        content: null,
+      },
+    ],
+  }));
 
-  const notebook = {
+  const notebook: Notebook = {
     id: uid(),
     name: "Prüfungsvorbereitung",
-    sections,
+    items: sections,
   };
 
   return {
