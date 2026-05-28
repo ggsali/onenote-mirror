@@ -5,9 +5,11 @@ import Highlight from "@tiptap/extension-highlight";
 import Underline from "@tiptap/extension-underline";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Paperclip, X } from "lucide-react";
 import { format } from "date-fns";
 import { isQuestion, askLmStudio } from "@/lib/onenote/ai";
+import { pdfToImages, getStoredDoc, clearStoredDoc } from "@/lib/onenote/pdf";
 import type { Page } from "@/lib/onenote/types";
 import type { JSONContent } from "@tiptap/react";
 
@@ -20,6 +22,38 @@ interface Props {
 
 export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: Props) {
   const titleRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [docName, setDocName] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const imagesRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const { name, images } = getStoredDoc();
+    setDocName(name);
+    imagesRef.current = images;
+  }, []);
+
+  const handleFile = async (file: File) => {
+    if (file.type !== "application/pdf") return;
+    setUploading(true);
+    try {
+      const images = await pdfToImages(file);
+      imagesRef.current = images;
+      localStorage.setItem("docName", file.name);
+      localStorage.setItem("docImages", JSON.stringify(images));
+      setDocName(file.name);
+    } catch (e) {
+      console.error("PDF processing failed", e);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemove = () => {
+    clearStoredDoc();
+    imagesRef.current = [];
+    setDocName(null);
+  };
 
   const editor = useEditor(
     {
@@ -45,9 +79,9 @@ export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: 
           const text = para.textContent;
           if (!isQuestion(text)) return false;
 
-          // Allow default Enter (new paragraph). Fire AI silently in background.
           const question = text;
-          askLmStudio(question)
+          const images = imagesRef.current.length > 0 ? imagesRef.current : undefined;
+          askLmStudio(question, images)
             .then((answer) => {
               if (!editor) return;
               const lines = answer.split("\n").filter((l) => l.trim().length > 0);
@@ -58,9 +92,7 @@ export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: 
               const insertAt = editor.state.selection.from;
               editor.chain().focus().insertContentAt(insertAt, nodes).run();
             })
-            .catch(() => {
-              // Silent failure — AI is invisible.
-            });
+            .catch(() => {});
           return false;
         },
       },
@@ -85,20 +117,60 @@ export function Editor({ page, onChangeTitle, onChangeContent, onEditorReady }: 
   return (
     <div className="flex-1 overflow-y-auto bg-[#1E1E1E]">
       <div className="max-w-[900px] mx-auto pt-10 pb-32 px-[60px]">
-        <div
-          ref={titleRef}
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => onChangeTitle(e.currentTarget.innerText.trim() || "Neue Seite")}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              (e.target as HTMLDivElement).blur();
-              editor?.commands.focus("start");
-            }
-          }}
-          className="text-[26px] font-light text-[#E8E8E8] outline-none leading-tight"
-        />
+        <div className="flex items-start justify-between gap-4">
+          <div
+            ref={titleRef}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => onChangeTitle(e.currentTarget.innerText.trim() || "Neue Seite")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                (e.target as HTMLDivElement).blur();
+                editor?.commands.focus("start");
+              }
+            }}
+            className="flex-1 text-[26px] font-light text-[#E8E8E8] outline-none leading-tight"
+          />
+          <div className="flex items-center gap-2 pt-2 shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-[#555] hover:text-[#888] transition-colors"
+              title="PDF anhängen"
+            >
+              <Paperclip size={16} />
+            </button>
+            {(docName || uploading) && (
+              <div className="flex items-center gap-1.5 text-[10px] text-[#555]">
+                <span className="truncate max-w-[180px]">
+                  📄 {uploading ? "Verarbeite…" : docName}
+                </span>
+                {docName && !uploading && (
+                  <button
+                    type="button"
+                    onClick={handleRemove}
+                    className="text-[#555] hover:text-[#888]"
+                    title="Entfernen"
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
         <div className="text-[12px] text-[#555] mt-2 mb-6">
           {format(new Date(page.updatedAt), "EEEE, d MMMM yyyy  h:mm a")}
         </div>

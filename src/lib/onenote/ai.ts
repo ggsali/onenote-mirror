@@ -64,8 +64,16 @@ export function isQuestion(text: string): boolean {
   return TRIGGERS.some((trig) => t.startsWith(trig + " ") || t === trig);
 }
 
-export async function askLmStudio(question: string, hasPdfLoaded: boolean = false): Promise<string> {
+export async function askLmStudio(question: string, images?: string[]): Promise<string> {
+  const hasPdfLoaded = !!images && images.length > 0;
   const systemPrompt = hasPdfLoaded ? SYSTEM_PROMPT_WITH_PDF : SYSTEM_PROMPT_NO_PDF;
+
+  const userContent: unknown = hasPdfLoaded
+    ? [
+        { type: "text", text: question },
+        ...images!.map((url) => ({ type: "image_url", image_url: { url } })),
+      ]
+    : question;
 
   const response = await fetch("http://localhost:1234/v1/chat/completions", {
     method: "POST",
@@ -74,7 +82,7 @@ export async function askLmStudio(question: string, hasPdfLoaded: boolean = fals
       model: "local-model",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: question },
+        { role: "user", content: userContent },
       ],
       temperature: 0.3,
       max_tokens: 400,
@@ -86,3 +94,4 @@ export async function askLmStudio(question: string, hasPdfLoaded: boolean = fals
   if (typeof content !== "string") throw new Error("Invalid LM Studio response");
   return content.trim();
 }
+
